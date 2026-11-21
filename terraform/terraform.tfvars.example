@@ -1,0 +1,7 @@
+project_id           = "GCP_PROJECT_ID"
+region               = "us-central1"
+zone                 = "us-central1-a"
+tf_state_bucket_name = "TF_STATE_BUCKET"
+data_disk_name       = "persistent-data"
+tunnel_secret_id     = "CLOUDFLARE_TUNNEL_SECRET_ID"
+grafana_secret_id    = "GRAFANA_ADMIN_PASSWORD_SECRET_ID"

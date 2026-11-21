@@ -1,0 +1,73 @@
+name: Validate Configs
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-opentofu:
+    name: OpenTofu Format & Validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+
+      - name: Check formatting
+        run: tofu fmt -check -recursive
+
+      - name: Initialize without backend
+        run: tofu init -backend=false
+
+      - name: Validate configuration
+        run: tofu validate
+
+  validate-ansible-and-yaml:
+    name: Ansible, YAML & Compose Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linters and Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core ansible-lint yamllint
+          ansible-galaxy collection install -r ansible/requirements.yaml
+
+      - name: Run yamllint
+        run: yamllint -d "{extends: relaxed, rules: {line-length: {max: 140}}}" .
+
+      - name: Check Ansible playbook syntax
+        working-directory: ansible
+        run: ansible-playbook -i hosts.yaml.example --syntax-check site.yaml
+
+      - name: Run ansible-lint
+        working-directory: ansible
+        run: ansible-lint site.yaml
+
+      - name: Validate Docker Compose config
+        working-directory: otel-collector
+        env:
+          CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        run: docker compose config --quiet

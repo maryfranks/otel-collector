@@ -1,0 +1,61 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - grafana
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    container_name: otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    deploy:
+      resources:
+        limits:
+          memory: 250M
+    depends_on:
+      - victoriametrics
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.103.0
+    container_name: victoriametrics
+    restart: unless-stopped
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=12"
+      - "-httpListenAddr=:8428"
+    volumes:
+      - /mnt/disks/data/victoriametrics:/storage
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SERVER_ROOT_URL=https://grafana.example.com
+    volumes:
+      - /mnt/disks/data/grafana:/var/lib/grafana
+      - ./victoriametrics-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    depends_on:
+      - victoriametrics

@@ -1,0 +1,8 @@
+---
+all:
+  children:
+    telemetry:
+      hosts:
+        otel-collector-vm:
+          ansible_host: VM_HOST_OR_TAILSCALE_NAME
+          ansible_user: SSH_USER
