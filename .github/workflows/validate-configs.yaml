@@ -55,7 +55,9 @@ jobs:
           ansible-galaxy collection install -r ansible/requirements.yaml
 
       - name: Run yamllint
-        run: yamllint -d "{extends: relaxed, rules: {line-length: {max: 140}}}" .
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: {max: 140}}}" .
+
 
       - name: Check Ansible playbook syntax
         working-directory: ansible
