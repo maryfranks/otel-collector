@@ -108,7 +108,7 @@ Before deploying, copy and customize the provided `.example` templates and repla
 3. **Ansible Inventory (`ansible/hosts.yaml.example` -> `ansible/hosts.yaml`)**:
    - Copy `ansible/hosts.yaml.example` to `ansible/hosts.yaml` and set `ansible_host` and `ansible_user`.
 4. **Ansible Group Vars (`ansible/group_vars/telemetry.yaml`)**:
-   - Update `gcp_project_id`, `tunnel_secret_id`, and `grafana_secret_id` to match the target GCP project and Secret Manager secret IDs.
+   - Update `telemetry_stack_gcp_project_id`, `telemetry_stack_tunnel_secret_id`, and `telemetry_stack_grafana_secret_id` to match the target GCP project and Secret Manager secret IDs.
 5. **Domains & CORS (`otel-collector/`)**:
    - In `otel-collector/docker-compose.yml`, update `GF_SERVER_ROOT_URL` to your Grafana public URL (e.g., `https://grafana.example.com`).
    - In `otel-collector/otel-collector-config.yaml`, update `receivers.otlp.protocols.http.cors.allowed_origins` with your allowed client origins.
