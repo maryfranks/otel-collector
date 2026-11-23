@@ -144,18 +144,32 @@
         group: root
         mode: "0755"
 
-    - name: Deploy telemetry configuration files
+    - name: Deploy docker-compose.yml
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../otel-collector/{{ item }}"
-        dest: "{{ telemetry_dir }}/{{ item }}"
+        src: "{{ playbook_dir }}/../otel-collector/docker-compose.yml"
+        dest: "{{ telemetry_dir }}/docker-compose.yml"
         owner: root
         group: root
         mode: "0644"
-      loop:
-        - victoriametrics-datasource.yaml
-        - otel-collector-config.yaml
-        - docker-compose.yml
-      notify: Restart telemetry stack
+      notify: Reload telemetry stack
+
+    - name: Deploy otel-collector-config.yaml
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../otel-collector/otel-collector-config.yaml"
+        dest: "{{ telemetry_dir }}/otel-collector-config.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart otel-collector
+
+    - name: Deploy victoriametrics-datasource.yaml
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../otel-collector/victoriametrics-datasource.yaml"
+        dest: "{{ telemetry_dir }}/victoriametrics-datasource.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart grafana
 
     - name: Deploy start-stack.sh secret hydration script
       ansible.builtin.template:
@@ -164,7 +178,7 @@
         owner: root
         group: root
         mode: "0700"
-      notify: Restart telemetry stack
+      notify: Reload telemetry stack
 
     - name: Deploy telemetry-stack systemd service unit
       ansible.builtin.copy:
@@ -175,7 +189,7 @@
         mode: "0644"
       notify:
         - Reload systemd
-        - Restart telemetry stack
+        - Reload telemetry stack
 
     - name: Ensure telemetry-stack service is enabled and started
       ansible.builtin.systemd:
@@ -188,7 +202,19 @@
       ansible.builtin.systemd:
         daemon_reload: true
 
-    - name: Restart telemetry stack
+    - name: Reload telemetry stack
       ansible.builtin.systemd:
         name: telemetry-stack.service
-        state: restarted
+        state: reloaded
+
+    - name: Restart otel-collector
+      ansible.builtin.command:
+        cmd: docker compose restart otel-collector
+        chdir: "{{ telemetry_dir }}"
+      changed_when: true
+
+    - name: Restart grafana
+      ansible.builtin.command:
+        cmd: docker compose restart grafana
+        chdir: "{{ telemetry_dir }}"
+      changed_when: true
