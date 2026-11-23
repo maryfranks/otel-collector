@@ -6,14 +6,14 @@ A self-bootstrapping, low-cost observability pipeline deployed on a Google Cloud
 
 ## Production Usage & Live Dashboard
 
-This repository isn't a toy template—it is the shared telemetry backbone powering my web games (**`thelibrary`** and **`clocktower`**). Browser and client applications emit OTLP/HTTP metrics over CORS (`:4318`), and workloads are separated in VictoriaMetrics and Grafana using the `service.name` resource attribute.
+This repository is a sanitized public mirror of the shared telemetry backbone powering my web games (**[The Library](thelibrary.littlefuzzydinos.com)** and **Clocktower** (WIP)). Browser and client applications emit OTLP/HTTP metrics over CORS (`:4318`), and workloads are separated in VictoriaMetrics and Grafana using the `service.name` resource attribute.
 
 * **Live Public Dashboard (`thelibrary` Death Toll):** [stats.littlefuzzydinos.com/d/thelibrary/death-toll](https://stats.littlefuzzydinos.com/d/thelibrary/death-toll)
 
 ![thelibrary Death Toll Grafana Dashboard](docs/death-toll-dashboard.png)
 
 > [!NOTE]
-> **Why this is a sanitized public mirror:** The live production configuration for this stack is kept in a private repository for operational security—so real GCP project IDs, Tailscale hostnames, Secret Manager secret IDs, CORS `allowed_origins`, and internal topology aren't exposed publicly. Everything here is the exact same architecture with `.example` placeholders.
+> **Why use a sanitized public mirror?** The live production configuration for this stack is kept in a private repository for operational security. I don't want to publicly expose real GCP project IDs, Tailscale hostnames, Secret Manager secret IDs, CORS `allowed_origins`, etc.  Everything here is the exact same architecture with `.example` placeholders.
 
 ## Architecture & Design Overview
 
@@ -181,3 +181,9 @@ Use `scripts/smoke-test.sh` to verify end-to-end metric ingestion from the OTel 
    ```bash
    OTEL_ENDPOINT=https://otel.example.com ./scripts/smoke-test.sh
    ```
+
+
+## Note on AI usage in the project.
+I built the original otel collector pipeline in my private repo myself. When I decided to showcase the stack, I had an agent work in that repo to sanitize all of the config into an `export` directory. I moved that directory out of the repo and turned into a new repository. I had the agent generate most of the docs in this repo from a loose assortment of architecture documents and a description I provided about keeping the running costs for the stack at $0.
+
+After testing and asking a fresh agent to review for completeness, I ended with a list of things that needed to be fixed in the actual, running infra as well. I fixed those items there myself and then wrote up summaries that I fed to an agent to create tickets in the repo backlog. I had my agents iterate over those tickets using a gh-issue-pipeline skill to mirror those changes to this repo. To see my agent configs, see my public [agents repo](https://github.com/maryfranks/agents).
