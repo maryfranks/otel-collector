@@ -114,6 +114,9 @@ Before deploying, copy and customize the provided `.example` templates and repla
    - In `otel-collector/otel-collector-config.yaml`, update `receivers.otlp.protocols.http.cors.allowed_origins` with your allowed client origins.
 6. **Optional `.env` Reference (`.env.example`)**:
    - Provided for local testing with `docker compose` if not running via `start-stack.sh`.
+7. **GitHub Actions Workflow (`.github/workflows/deploy-telemetry.yaml.example` -> `.github/workflows/deploy-telemetry.yaml`)**:
+   - Copy `.github/workflows/deploy-telemetry.yaml.example` to `.github/workflows/deploy-telemetry.yaml` to enable automated deployments.
+   - Configure repository secrets `TS_OAUTH_CLIENT_ID` and `TS_OAUTH_SECRET`, and repository variables `VM_TAILSCALE_HOST` and `VM_SSH_USER` (used to generate `ansible/hosts.yaml` at runtime).
 
 ---
 
