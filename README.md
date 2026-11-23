@@ -1,6 +1,19 @@
 # Observability Stack on GCP (Always Free Tier)
 
+[![Validate Configs](https://github.com/maryfranks/otel-collector/actions/workflows/validate-configs.yaml/badge.svg)](https://github.com/maryfranks/otel-collector/actions/workflows/validate-configs.yaml)
+
 A self-bootstrapping, low-cost observability pipeline deployed on a Google Cloud Platform (GCP) `e2-micro` VM running Debian 12. Infrastructure is provisioned with **OpenTofu**, host configuration is managed with **Ansible**, runtime secrets are fetched from **Google Secret Manager**, and all services run via **Docker Compose** behind an outbound **Cloudflare Tunnel**.
+
+## Production Usage & Live Dashboard
+
+This repository isn't a toy template—it is the shared telemetry backbone powering my web games (**`thelibrary`** and **`clocktower`**). Browser and client applications emit OTLP/HTTP metrics over CORS (`:4318`), and workloads are separated in VictoriaMetrics and Grafana using the `service.name` resource attribute.
+
+* **Live Public Dashboard (`thelibrary` Death Toll):** [stats.littlefuzzydinos.com/d/thelibrary/death-toll](https://stats.littlefuzzydinos.com/d/thelibrary/death-toll)
+
+![thelibrary Death Toll Grafana Dashboard](docs/death-toll-dashboard.png)
+
+> [!NOTE]
+> **Why this is a sanitized public mirror:** The live production configuration for this stack is kept in a private repository for operational security—so real GCP project IDs, Tailscale hostnames, Secret Manager secret IDs, CORS `allowed_origins`, and internal topology aren't exposed publicly. Everything here is the exact same architecture with `.example` placeholders.
 
 ## Architecture & Design Overview
 
@@ -123,6 +136,11 @@ Before deploying, copy and customize the provided `.example` templates and repla
 ## Deployment Quickstart
 
 1. **Provision Infrastructure with OpenTofu**:
+   > [!NOTE]
+   > **GCS State Bucket Bootstrap:** `terraform/main.tf` configures `backend "gcs"` for a bucket that `terraform/storage.tf` also creates. On a brand-new environment, `tofu init` will fail if that bucket doesn't exist yet. Use either two-step approach:
+   > - **Option A (Migrate from local state):** Temporarily comment out the `backend "gcs"` block in `terraform/main.tf`, run `tofu init && tofu apply -target=google_storage_bucket.tf_state`, uncomment `backend "gcs"`, and run `tofu init -migrate-state && tofu apply`.
+   > - **Option B (Pre-create & import):** Create the bucket first (`gcloud storage buckets create gs://TF_STATE_BUCKET --location=GCP_REGION --uniform-bucket-level-access`), then run `tofu init`, `tofu import google_storage_bucket.tf_state TF_STATE_BUCKET`, and `tofu apply`.
+
    ```bash
    cd terraform
    tofu init
