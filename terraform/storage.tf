@@ -18,6 +18,10 @@ resource "google_storage_bucket" "tf_state" {
     }
   }
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   depends_on = [google_project_service.enabled_services]
 }
 
@@ -26,6 +30,10 @@ resource "google_compute_disk" "persistent_data" {
   type = "pd-standard"
   zone = var.zone
   size = 20
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   depends_on = [google_project_service.enabled_services]
 }
