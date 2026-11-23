@@ -1,0 +1,8 @@
+---
+gcp_project_id: "GCP_PROJECT_ID"
+tunnel_secret_id: "CLOUDFLARE_TUNNEL_SECRET_ID"
+grafana_secret_id: "GRAFANA_ADMIN_PASSWORD_SECRET_ID"
+
+data_disk_device: "/dev/disk/by-id/google-persistent-data"
+data_mount_path: "/mnt/disks/data"
+telemetry_dir: "/opt/telemetry"

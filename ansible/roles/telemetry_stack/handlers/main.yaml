@@ -1,0 +1,21 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Reload telemetry stack
+  ansible.builtin.systemd:
+    name: telemetry-stack.service
+    state: reloaded
+
+- name: Restart otel-collector
+  ansible.builtin.command:
+    cmd: docker compose restart otel-collector
+    chdir: "{{ telemetry_dir }}"
+  changed_when: true
+
+- name: Restart grafana
+  ansible.builtin.command:
+    cmd: docker compose restart grafana
+    chdir: "{{ telemetry_dir }}"
+  changed_when: true

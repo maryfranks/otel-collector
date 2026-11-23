@@ -1,0 +1,3 @@
+---
+data_disk_device: "/dev/disk/by-id/google-persistent-data"
+data_mount_path: "/mnt/disks/data"

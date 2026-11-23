@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Retrieve GCP OAuth access token from instance metadata
+TOKEN=$(curl -fsSL -H "Metadata-Flavor: Google" \
+  "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" \
+  | python3 -c "import json, sys; print(json.load(sys.stdin)['access_token'])")
+
+# Fetch secrets directly from Secret Manager REST API
+FETCH_SECRET() {
+  local name="$1"
+  local response
+  response=$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" \
+    "https://secretmanager.googleapis.com/v1/projects/{{ gcp_project_id }}/secrets/${name}/versions/latest:access")
+  printf '%s' "${response}" | python3 -c "import base64, json, sys; sys.stdout.buffer.write(base64.b64decode(json.load(sys.stdin)['payload']['data']))"
+}
+
+CLOUDFLARE_TUNNEL_TOKEN=$(FETCH_SECRET "{{ tunnel_secret_id }}")
+export CLOUDFLARE_TUNNEL_TOKEN
+GRAFANA_ADMIN_PASSWORD=$(FETCH_SECRET "{{ grafana_secret_id }}")
+export GRAFANA_ADMIN_PASSWORD
+export GRAFANA_ADMIN_USER="admin"
+
+cd {{ telemetry_dir }}
+docker compose up -d --remove-orphans
