@@ -93,7 +93,7 @@ VictoriaMetrics replaces standard Prometheus and external managed databases for 
 
 ## 4. Container Resource Budget (1.0 GB Host Ceiling)
 
-On an `e2-micro` instance with 1.0 GB of RAM, memory spikes without container caps can trigger the Linux Out-Of-Memory (OOM) killer. Explicit memory ceilings are enforced in `otel-collector/docker-compose.yml` alongside the collector's internal `memory_limiter` processor:
+On an `e2-micro` instance with 1.0 GB of RAM and a 10 GB boot disk, memory spikes or unbounded container logs can trigger the Linux Out-Of-Memory (OOM) killer or exhaust disk space. Explicit memory ceilings and `json-file` log rotation are enforced in `otel-collector/docker-compose.yml` alongside the collector's internal `memory_limiter` processor:
 
 | Container / Process | Baseline RAM | Hard Limit (`mem_limit`) | Role |
 | :--- | :--- | :--- | :--- |
@@ -108,7 +108,8 @@ On an `e2-micro` instance with 1.0 GB of RAM, memory spikes without container ca
 
 ## 5. Persistence, Security & Failure Recovery
 
-1. **Decoupled Compute & Storage:** The `e2-micro` VM and its 10 GB boot disk are treated as disposable. All stateful data resides on the separate 20 GB `pd-standard` disk (`/dev/disk/by-id/google-persistent-data`), formatted and mounted at `/mnt/disks/data` by Ansible. Destroying and recreating the VM re-attaches the existing volume intact.
+1. **Decoupled Compute & Storage:** The `e2-micro` VM and its 10 GB boot disk are treated as disposable. All stateful data resides on the separate 20 GB `pd-standard` disk (`/dev/disk/by-id/google-persistent-data`), formatted and mounted at `/mnt/disks/data` by Ansible. Both `google_compute_disk.persistent_data` and `google_storage_bucket.tf_state` in `terraform/storage.tf` carry `lifecycle { prevent_destroy = true }` to guard against accidental `tofu destroy`, so destroying and recreating the VM re-attaches the existing volume intact.
 2. **Runtime Secret Hydration:** Secrets (`CLOUDFLARE_TUNNEL_TOKEN` and `GRAFANA_ADMIN_PASSWORD`) are stored in Google Secret Manager and fetched dynamically at `systemd` service startup via `/opt/telemetry/start-stack.sh` using the VM's least-privilege IAM service account.
 3. **Zero Public Attack Surface:** Inbound firewall rules permit SSH solely from GCP Identity-Aware Proxy (`35.235.240.0/20`) for initial Tailscale bootstrap; ongoing configuration management runs over Tailscale SSH via GitHub Actions.
 4. **Automatic Service Recovery:** `telemetry-stack.service` supervises the Docker Compose lifecycle on boot, and all containers run with `restart: unless-stopped`.
+5. **Public OTLP / CORS Auth Trade-off:** OTLP/HTTP (`:4318`) intentionally has no collector-side bearer token authentication. Because browser-based game clients cannot safely store secret tokens without exposing them in client-side bundles, ingestion relies on strict CORS origin filtering (`allowed_origins` in `otel-collector/otel-collector-config.yaml`), Cloudflare Edge/WAF rate-limiting in front of the tunnel, and the collector's `memory_limiter` processor (`75%` limit / `20%` spike).
