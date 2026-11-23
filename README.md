@@ -93,7 +93,7 @@ printf '%s' 'CLOUDFLARE_TUNNEL_TOKEN' | gcloud secrets versions add CLOUDFLARE_T
 printf '%s' 'GRAFANA_ADMIN_PASSWORD' | gcloud secrets versions add GRAFANA_ADMIN_PASSWORD_SECRET_ID --data-file=-
 ```
 
-At runtime, `/opt/telemetry/start-stack.sh` (rendered from `ansible/templates/start-stack.sh.j2`) retrieves an OAuth token from the GCE instance metadata server and fetches the latest version of each secret directly from the Secret Manager REST API.
+At runtime, `/opt/telemetry/start-stack.sh` (rendered from `ansible/roles/telemetry_stack/templates/start-stack.sh.j2`) retrieves an OAuth token from the GCE instance metadata server and fetches the latest version of each secret directly from the Secret Manager REST API.
 
 ---
 
@@ -107,8 +107,8 @@ Before deploying, copy and customize the provided `.example` templates and repla
    - Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and set `project_id`, `region`, `zone`, `tf_state_bucket_name`, `tunnel_secret_id`, and `grafana_secret_id`.
 3. **Ansible Inventory (`ansible/hosts.yaml.example` -> `ansible/hosts.yaml`)**:
    - Copy `ansible/hosts.yaml.example` to `ansible/hosts.yaml` and set `ansible_host` and `ansible_user`.
-4. **Ansible Playbook Vars (`ansible/site.yaml`)**:
-   - Update `gcp_project_id`, `tunnel_secret_id`, and `grafana_secret_id` under `vars:` to match your GCP project and Secret Manager secret IDs.
+4. **Ansible Group Vars (`ansible/group_vars/telemetry.yaml`)**:
+   - Update `gcp_project_id`, `tunnel_secret_id`, and `grafana_secret_id` to match the target GCP project and Secret Manager secret IDs.
 5. **Domains & CORS (`otel-collector/`)**:
    - In `otel-collector/docker-compose.yml`, update `GF_SERVER_ROOT_URL` to your Grafana public URL (e.g., `https://grafana.example.com`).
    - In `otel-collector/otel-collector-config.yaml`, update `receivers.otlp.protocols.http.cors.allowed_origins` with your allowed client origins.
