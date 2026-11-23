@@ -1,7 +1,7 @@
 ---
 - name: Ensure telemetry directory exists
   ansible.builtin.file:
-    path: "{{ telemetry_dir }}"
+    path: "{{ telemetry_stack_dir }}"
     state: directory
     owner: root
     group: root
@@ -10,7 +10,7 @@
 - name: Deploy docker-compose.yml
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../otel-collector/docker-compose.yml"
-    dest: "{{ telemetry_dir }}/docker-compose.yml"
+    dest: "{{ telemetry_stack_dir }}/docker-compose.yml"
     owner: root
     group: root
     mode: "0644"
@@ -19,7 +19,7 @@
 - name: Deploy otel-collector-config.yaml
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../otel-collector/otel-collector-config.yaml"
-    dest: "{{ telemetry_dir }}/otel-collector-config.yaml"
+    dest: "{{ telemetry_stack_dir }}/otel-collector-config.yaml"
     owner: root
     group: root
     mode: "0644"
@@ -28,7 +28,7 @@
 - name: Deploy victoriametrics-datasource.yaml
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../otel-collector/victoriametrics-datasource.yaml"
-    dest: "{{ telemetry_dir }}/victoriametrics-datasource.yaml"
+    dest: "{{ telemetry_stack_dir }}/victoriametrics-datasource.yaml"
     owner: root
     group: root
     mode: "0644"
@@ -37,7 +37,7 @@
 - name: Deploy start-stack.sh secret hydration script
   ansible.builtin.template:
     src: start-stack.sh.j2
-    dest: "{{ telemetry_dir }}/start-stack.sh"
+    dest: "{{ telemetry_stack_dir }}/start-stack.sh"
     owner: root
     group: root
     mode: "0700"
