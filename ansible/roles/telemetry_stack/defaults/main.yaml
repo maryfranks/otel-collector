@@ -1,0 +1,5 @@
+---
+telemetry_stack_gcp_project_id: "GCP_PROJECT_ID"
+telemetry_stack_tunnel_secret_id: "CLOUDFLARE_TUNNEL_SECRET_ID"
+telemetry_stack_grafana_secret_id: "GRAFANA_ADMIN_PASSWORD_SECRET_ID"
+telemetry_stack_dir: "/opt/telemetry"

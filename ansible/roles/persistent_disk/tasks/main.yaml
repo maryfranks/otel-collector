@@ -1,0 +1,38 @@
+---
+- name: Wait for persistent data disk device
+  ansible.builtin.wait_for:
+    path: "{{ persistent_disk_device }}"
+    state: present
+    timeout: 60
+
+- name: Ensure ext4 filesystem exists on persistent disk
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ persistent_disk_device }}"
+    opts: "-m 0 -E lazy_itable_init=0,lazy_journal_init=0"
+
+- name: Ensure mount point exists
+  ansible.builtin.file:
+    path: "{{ persistent_disk_mount_path }}"
+    state: directory
+    mode: "0755"
+
+- name: Mount persistent data disk
+  ansible.posix.mount:
+    path: "{{ persistent_disk_mount_path }}"
+    src: "{{ persistent_disk_device }}"
+    fstype: ext4
+    opts: "discard,defaults,nofail"
+    passno: "2"
+    state: mounted
+
+- name: Ensure Grafana and VictoriaMetrics data directories exist
+  ansible.builtin.file:
+    path: "{{ persistent_disk_mount_path }}/{{ item.dir }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.owner }}"
+    mode: "0750"
+  loop:
+    - { dir: "grafana", owner: "472" }
+    - { dir: "victoriametrics", owner: "1000" }
