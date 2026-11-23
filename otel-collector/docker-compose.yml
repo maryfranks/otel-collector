@@ -1,11 +1,20 @@
 services:
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.11.2
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - grafana
       - otel-collector
@@ -21,6 +30,11 @@ services:
       resources:
         limits:
           memory: 250M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - victoriametrics
 
@@ -38,6 +52,11 @@ services:
       resources:
         limits:
           memory: 300M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   grafana:
     image: grafana/grafana-oss:11.2.0
@@ -57,5 +76,10 @@ services:
       resources:
         limits:
           memory: 300M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - victoriametrics
