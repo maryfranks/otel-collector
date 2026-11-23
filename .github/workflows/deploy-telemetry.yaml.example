@@ -38,6 +38,23 @@ jobs:
           python -m pip install --upgrade pip ansible
           ansible-galaxy collection install -r ansible/requirements.yaml
 
+      - name: Generate Ansible inventory
+        working-directory: ansible
+        env:
+          VM_TAILSCALE_HOST: ${{ vars.VM_TAILSCALE_HOST }}
+          VM_SSH_USER: ${{ vars.VM_SSH_USER }}
+        run: |
+          cat <<EOF > hosts.yaml
+          ---
+          all:
+            children:
+              telemetry:
+                hosts:
+                  otel-collector-vm:
+                    ansible_host: ${VM_TAILSCALE_HOST}
+                    ansible_user: ${VM_SSH_USER}
+          EOF
+
       - name: Run Ansible playbook
         working-directory: ansible
         run: ansible-playbook site.yaml
